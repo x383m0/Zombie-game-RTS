@@ -1,0 +1,39 @@
+{
+  "runtime": "v24.19.0",
+  "note": "Moteur seul à 30 Hz : 300 pas après 30 pas de préchauffage pour les populations dispersées, 120 pas pour la horde concentrée; combat actif, effectifs initiaux et finaux précisés; rendu et navigateur exclus.",
+  "results": [
+    {
+      "initialZombies": 2500,
+      "zombiesRemaining": 2480,
+      "kills": 32,
+      "meanMs": 4.98,
+      "p95Ms": 11.87,
+      "maxMs": 26.09
+    },
+    {
+      "initialZombies": 5000,
+      "zombiesRemaining": 4971,
+      "kills": 75,
+      "meanMs": 7.17,
+      "p95Ms": 11.88,
+      "maxMs": 20.93
+    },
+    {
+      "initialZombies": 10000,
+      "zombiesRemaining": 9930,
+      "kills": 145,
+      "meanMs": 16.77,
+      "p95Ms": 23.6,
+      "maxMs": 40.2
+    },
+    {
+      "initialZombies": 10000,
+      "zombiesRemaining": 5529,
+      "kills": 4471,
+      "scenario": "horde concentrée, rayon 300",
+      "meanMs": 24.99,
+      "p95Ms": 42.36,
+      "maxMs": 47.55
+    }
+  ]
+}
