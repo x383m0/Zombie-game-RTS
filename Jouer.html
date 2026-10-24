@@ -4,9 +4,11 @@
 #panel-btn{display:none;position:absolute;left:8px;top:65px;z-index:2;font-size:10px}@media(max-width:650px){#panel-btn{display:block}#panel{top:105px}#tool-banner{top:65px;left:auto;right:8px;transform:none;max-width:65vw}}
 
 .deploy{display:grid;grid-template-columns:1fr 1fr}.deploy button{display:flex;align-items:center;gap:4px;padding:8px}.deploy em{display:inline}.blast-report{display:flex;justify-content:space-between;gap:8px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px;font:8px/1.7 monospace;color:var(--muted)}.blast-report b{display:block;font-size:20px;color:var(--gold)}.visual-options{border:1px solid var(--line);margin:16px 0;padding:9px 12px}.visual-options legend{font:9px monospace;color:var(--muted);letter-spacing:1px}.visual-options label{justify-content:flex-start;font-size:11px;margin:8px 0}.visual-options input{accent-color:var(--gold)}.siege-btn{width:100%;margin-top:10px;color:var(--gold);font-size:10px}
+
+#startup{position:fixed;z-index:100;left:50%;top:50%;transform:translate(-50%,-50%);width:min(500px,calc(100vw - 32px));padding:25px;background:#17251ff5;border:1px solid #bca76e;border-radius:8px;box-shadow:0 15px 70px #0009}#startup h2{font-size:22px}#startup.error{border-color:#cf8e72}#startup-details{font:12px/1.6 monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:30vh;overflow:auto;color:#e6c5a9}#startup-details:empty{display:none}
 </style></head>
-<body><canvas id="game" aria-label="Carte tactique interactive"></canvas>
-<header><div class="brand"><span class="mark">Z</span><div>ZOMBIE GAME<small>COMMANDEMENT DU SECTEUR · V0.2</small></div></div><div class="topstats"><span>INFECTÉS <b id="z-count">0</b></span><span>FORCES <b id="u-count">0</b></span><span>CRÉDITS <b id="credits">0</b></span><span id="clock">00:00</span></div><button id="menu-btn" title="Ouvrir le menu">☰</button></header>
+<body><div id="startup" role="alert"><h2 id="startup-title">Démarrage du jeu…</h2><p>Si cet écran persiste, le moteur JavaScript n’a pas pu démarrer. Décompressez le ZIP, puis ouvrez index.html ou Jouer.html dans un navigateur.</p><pre id="startup-details"></pre><button id="startup-reload">Recharger</button><noscript><p>JavaScript est désactivé dans ce navigateur. Activez-le pour jouer.</p></noscript></div><canvas id="game" aria-label="Carte tactique interactive"></canvas>
+<header><div class="brand"><span class="mark">Z</span><div>ZOMBIE GAME<small>COMMANDEMENT DU SECTEUR · V0.2.1</small></div></div><div class="topstats"><span>INFECTÉS <b id="z-count">—</b></span><span>FORCES <b id="u-count">—</b></span><span>CRÉDITS <b id="credits">—</b></span><span id="clock">00:00</span></div><button id="menu-btn" title="Ouvrir le menu">☰</button></header>
 <aside id="panel"><div class="section-title">OPÉRATION / <span id="mode-label">DÉFENSE</span></div><h1>Tenir le périmètre.</h1><p id="objective">Protégez le QG pendant 5 minutes. Les survivants évacués rapportent des crédits.</p><div class="healthline"><span>INTÉGRITÉ DU QG</span><b id="hq-label">100%</b></div><div class="meter"><i id="hq-bar"></i></div>
 <div class="row time-controls"><button id="pause">Ⅱ Pause</button><button data-speed="1" class="active">1×</button><button data-speed="2">2×</button><button data-speed="4">4×</button></div>
 <section id="selection"><div class="section-title">UNITÉS SÉLECTIONNÉES <b id="selected-count">0</b></div><p id="unit-details">Cliquez ou tracez un rectangle sur vos forces.</p><div class="row"><button id="all">Tout sélectionner</button><button id="hold">Tenir</button></div><div class="row"><button id="move">Déplacer</button><button id="attack">Avancer / attaquer</button></div><div class="row"><button id="select-artillery">Artillerie seule</button><button id="bombard">◎ Bombarder [B]</button></div><p class="hint">Artillerie sélectionnée : B puis une cible au sol. H arrête le barrage. Mortiers et canons visent seuls les groupes denses.</p></section><section><div class="section-title">DÉPLOYER</div><div class="deploy"><button data-recruit="soldier">● Soldat <em>45</em></button><button data-recruit="apc">▰ Blindé <em>350</em></button><button data-recruit="tank">▣ Char <em>600</em></button><button data-recruit="artillery">↗ Artillerie <em>800</em></button></div></section>
@@ -16,12 +18,60 @@
 <div class="section-title">TRANSMISSIONS</div><div id="events" role="log"></div></aside>
 <button id="panel-btn" title="Afficher ou masquer les commandes">☷ Forces</button>
 <div id="tool-banner" hidden></div><div id="toast" role="status"></div>
-<div class="mapbox"><div class="section-title">CARTE DU SECTEUR <button id="home" title="Centrer sur le QG">⌖ QG</button></div><canvas id="minimap" width="200" height="200" aria-label="Minicarte, cliquez pour déplacer la caméra"></canvas><div class="mapmeta"><span>8,2 × 8,2 KM</span><span id="perf">60 FPS</span></div></div>
+<div class="mapbox"><div class="section-title">CARTE DU SECTEUR <button id="home" title="Centrer sur le QG">⌖ QG</button></div><canvas id="minimap" width="200" height="200" aria-label="Minicarte, cliquez pour déplacer la caméra"></canvas><div class="mapmeta"><span>8,2 × 8,2 KM</span><span id="perf">INITIALISATION</span></div></div>
 <footer><span><i class="dot green"></i> INFECTÉS <i class="dot blue"></i> ARMÉE <i class="dot white"></i> CIVILS</span><span id="controls">Glisser : sélectionner · Clic droit : ordre · ZQSD / WASD : caméra · Molette : zoom · Espace : pause</span><button id="help-btn">? Aide</button></footer>
-<dialog id="menu"><div class="section-title">ZOMBIE GAME / V0.2</div><h2>Commandement</h2><p>Commandez vos forces, fortifiez le périmètre et brisez les hordes à l’artillerie. Le banc d’essai lance immédiatement un siège de 3 500 zombies.</p><label>Scénario <select id="scenario"><option value="defense">Défense — tenir 5 minutes</option><option value="sandbox">Sandbox — simulation libre</option><option value="siege">Banc d’essai — artillerie</option></select></label><label>Population initiale <select id="population"><option value="1000">1 000 zombies</option><option value="2500" selected>2 500 zombies</option><option value="5000">5 000 zombies</option><option value="10000">10 000 zombies</option><option value="0">Aucun zombie</option></select></label><fieldset class="visual-options"><legend>EFFETS VISUELS</legend><label><input id="blood-setting" type="checkbox" checked> Sang et traces au sol</label><label><input id="shake-setting" type="checkbox" checked> Secousses des explosions</label><label><input id="reduced-setting" type="checkbox"> Effets réduits</label></fieldset><div class="row"><button id="new" class="primary">Nouvelle simulation</button><button id="resume">Reprendre</button></div><div class="row"><button id="save">Sauvegarder JSON</button><button id="load">Charger JSON</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><p class="hint">Un nouveau scénario remplace la simulation en cours. Exportez-la pour la conserver.</p></dialog>
+<dialog id="menu"><div class="section-title">ZOMBIE GAME / V0.2.1</div><h2>Commandement</h2><p>Commandez vos forces, fortifiez le périmètre et brisez les hordes à l’artillerie. Le banc d’essai lance immédiatement un siège de 3 500 zombies.</p><label>Scénario <select id="scenario"><option value="defense">Défense — tenir 5 minutes</option><option value="sandbox">Sandbox — simulation libre</option><option value="siege">Banc d’essai — artillerie</option></select></label><label>Population initiale <select id="population"><option value="1000">1 000 zombies</option><option value="2500" selected>2 500 zombies</option><option value="5000">5 000 zombies</option><option value="10000">10 000 zombies</option><option value="0">Aucun zombie</option></select></label><fieldset class="visual-options"><legend>EFFETS VISUELS</legend><label><input id="blood-setting" type="checkbox" checked> Sang et traces au sol</label><label><input id="shake-setting" type="checkbox" checked> Secousses des explosions</label><label><input id="reduced-setting" type="checkbox"> Effets réduits</label></fieldset><div class="row"><button id="new" class="primary">Nouvelle simulation</button><button id="resume">Reprendre</button></div><div class="row"><button id="save">Sauvegarder JSON</button><button id="load">Charger JSON</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><p class="hint">Un nouveau scénario remplace la simulation en cours. Exportez-la pour la conserver.</p></dialog>
 <dialog id="help"><h2>Ordres & survie</h2><p>Votre QG gagne 8 crédits par seconde. Chaque civil évacué rapporte 20 crédits. Des hordes arrivent toutes les 40 secondes après la première alerte.</p><ul><li><b>Sélection :</b> clic, rectangle, Maj pour ajouter ; Ctrl+A sélectionne toute l’armée.</li><li><b>Ordres :</b> clic droit pour déplacer ; T puis clic pour avancer en attaquant ; H pour tenir.</li><li><b>Caméra :</b> WASD, ZQSD ou flèches ; glisser avec le bouton central ; molette pour zoomer ; F pour le QG.</li><li><b>Construction :</b> bouton puis clic pour poser, Maj pour continuer ; Échap annule. Construisez près d’une base et laissez des passages.</li><li><b>Combat :</b> tirs automatiques, chargeurs et réserves limités. Les chars infligent des dégâts de zone. Les bâtiments arrêtent les balles.</li><li><b>Artillerie :</b> le canon HE tire à vue ; mortiers et artillerie mobile tirent en cloche par-dessus les murs. Sélectionnez l’artillerie, B puis clic pour un barrage répété (180–1 450 unités). H ou un ordre de déplacement annule ce barrage. Les explosions repoussent les survivants et les bâtiments protègent des éclats ; aucun tir ami.</li><li><b>Infection :</b> un humain mordu se transforme après 18 secondes. Rejoignez un dépôt ou le QG pour le soigner et refaire le plein.</li><li><b>Mobile :</b> sélectionnez une unité ou « Tout sélectionner », puis « Déplacer » et touchez la carte. Glissez à deux doigts pour la caméra et pincez pour zoomer.</li></ul><button id="help-close" class="primary">Compris</button></dialog>
 <dialog id="result"><div class="section-title">RAPPORT DE MISSION</div><h2 id="result-title"></h2><p id="result-text"></p><button id="result-menu" class="primary">Choisir un scénario</button></dialog>
-<script type="module">
+<script>
+// Runs before the game so import, syntax and runtime failures cannot leave
+// a silent empty map. This file is embedded in every distributed HTML entry.
+(() => {
+  const panel = document.getElementById('startup');
+  const title = document.getElementById('startup-title');
+  const details = document.getElementById('startup-details');
+  let state = 'loading';
+  let timer;
+  function fail(message) {
+    if (state === 'error') return;
+    const wasRunning = state === 'ready';
+    state = 'error';
+    clearTimeout(timer);
+    document.documentElement.dataset.gameState = 'error';
+    document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+    panel.hidden = false;
+    panel.classList.add('error');
+    title.textContent = wasRunning ? 'La simulation a rencontré une erreur.' : 'Le moteur du jeu n’a pas démarré.';
+    details.textContent = String(message || 'Erreur inconnue.').slice(0, 2000);
+  }
+  window.ZombieBoot = {
+    ready() {
+      if (state === 'error') return;
+      state = 'ready';
+      clearTimeout(timer);
+      document.documentElement.dataset.gameState = 'ready';
+      panel.hidden = true;
+    },
+    fail
+  };
+  document.getElementById('startup-reload').onclick = () => location.reload();
+  addEventListener('error', event => {
+    if (event.target?.tagName === 'SCRIPT' && event.target.src) {
+      fail('Impossible de charger le moteur JavaScript. Pour jouer par double-clic, ouvrez index.html ou Jouer.html ; dev.html nécessite un serveur local.');
+    } else if (event.message) {
+      fail(event.message);
+    }
+  }, true);
+  addEventListener('unhandledrejection', event => fail(event.reason?.message || event.reason));
+  timer = setTimeout(() => {
+    if (state === 'loading') fail('Le chargement n’a pas abouti. Décompressez le ZIP dans un dossier, puis ouvrez index.html dans Chrome, Edge ou Firefox.');
+  }, 8000);
+})();
+
+</script>
+<script>
+"use strict";
+(() => {
 const SIZE=8192, TILE=64, COLS=SIZE/TILE, STEP=1/30;
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const dist2=(a,b)=>(a.x-b.x)**2+(a.y-b.y)**2;
@@ -365,6 +415,7 @@ function hud(){const army=sim.units.filter(u=>u.kind!=='civilian'),selection=arm
  const log=$('#events');log.replaceChildren();for(const e of sim.events){const div=document.createElement('div'),t=document.createElement('time');t.textContent=clock(e.time)+' ';div.append(t,document.createTextNode(e.text));log.append(div);}document.querySelectorAll('[data-recruit]').forEach(b=>b.disabled=!sim.affordable(TROOPS[b.dataset.recruit].cost));renderer.drawMini(sim);
  if(sim.status!=='playing'&&!resultShown){resultShown=true;$('#result-title').textContent=sim.status==='won'?'Secteur sécurisé.':'Périmètre perdu.';$('#result-text').textContent=`${clock(sim.time)} de résistance · ${sim.kills} zombies éliminés · ${sim.rescued} civils évacués. Lancez un nouveau scénario depuis le menu.`;$('#result').showModal();}}
 function frame(now){const dt=Math.min((now-last)/1000,.1);last=now;const dialog=!!document.querySelector('dialog[open]');if(!dialog)input.update(dt);if(!paused&&!dialog&&sim.status==='playing'){acc=Math.min(acc+dt*speed,STEP*12);let n=0,start=performance.now();while(acc>=STEP&&n<12){sim.tick(STEP);acc-=STEP;n++;}if(n)updateMs=updateMs*.8+(performance.now()-start)/n*.2;}else acc=0;renderer.draw(sim,input);frames++;frameTime+=dt;if(frameTime>=.5){fps=Math.round(frames/frameTime);frames=0;frameTime=0;}if(now-hudAt>250){hudAt=now;hud();}requestAnimationFrame(frame);}
-$('#menu').showModal();hud();requestAnimationFrame(frame);
+$('#menu').showModal();hud();renderer.draw(sim,input);window.ZombieBoot?.ready();requestAnimationFrame(frame);
 
+})();
 </script></body></html>

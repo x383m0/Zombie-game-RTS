@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta name="theme-color" content="#15221f"><title>Zombie Game — Commandement</title><link rel="stylesheet" href="style.css"></head>
+<body><div id="startup" role="alert"><h2 id="startup-title">Démarrage du jeu…</h2><p>Si cet écran persiste, le moteur JavaScript n’a pas pu démarrer. Décompressez le ZIP, puis ouvrez index.html ou Jouer.html dans un navigateur.</p><pre id="startup-details"></pre><button id="startup-reload">Recharger</button><noscript><p>JavaScript est désactivé dans ce navigateur. Activez-le pour jouer.</p></noscript></div><canvas id="game" aria-label="Carte tactique interactive"></canvas>
+<header><div class="brand"><span class="mark">Z</span><div>ZOMBIE GAME<small>COMMANDEMENT DU SECTEUR · V0.2.1</small></div></div><div class="topstats"><span>INFECTÉS <b id="z-count">—</b></span><span>FORCES <b id="u-count">—</b></span><span>CRÉDITS <b id="credits">—</b></span><span id="clock">00:00</span></div><button id="menu-btn" title="Ouvrir le menu">☰</button></header>
+<aside id="panel"><div class="section-title">OPÉRATION / <span id="mode-label">DÉFENSE</span></div><h1>Tenir le périmètre.</h1><p id="objective">Protégez le QG pendant 5 minutes. Les survivants évacués rapportent des crédits.</p><div class="healthline"><span>INTÉGRITÉ DU QG</span><b id="hq-label">100%</b></div><div class="meter"><i id="hq-bar"></i></div>
+<div class="row time-controls"><button id="pause">Ⅱ Pause</button><button data-speed="1" class="active">1×</button><button data-speed="2">2×</button><button data-speed="4">4×</button></div>
+<section id="selection"><div class="section-title">UNITÉS SÉLECTIONNÉES <b id="selected-count">0</b></div><p id="unit-details">Cliquez ou tracez un rectangle sur vos forces.</p><div class="row"><button id="all">Tout sélectionner</button><button id="hold">Tenir</button></div><div class="row"><button id="move">Déplacer</button><button id="attack">Avancer / attaquer</button></div><div class="row"><button id="select-artillery">Artillerie seule</button><button id="bombard">◎ Bombarder [B]</button></div><p class="hint">Artillerie sélectionnée : B puis une cible au sol. H arrête le barrage. Mortiers et canons visent seuls les groupes denses.</p></section><section><div class="section-title">DÉPLOYER</div><div class="deploy"><button data-recruit="soldier">● Soldat <em>45</em></button><button data-recruit="apc">▰ Blindé <em>350</em></button><button data-recruit="tank">▣ Char <em>600</em></button><button data-recruit="artillery">↗ Artillerie <em>800</em></button></div></section>
+<section><div class="section-title">CONSTRUIRE <span>CLIC SUR LA CARTE</span></div><div class="buildgrid"><button data-build="wall">▥ Barricade <em>40</em></button><button data-build="tower">⊕ Tourelle <em>220</em></button><button data-build="cannon">◉ Canon HE <em>320</em></button><button data-build="mortar">↗ Mortier <em>420</em></button><button data-build="depot">▤ Dépôt <em>180</em></button><button data-build="barracks">⌂ Caserne <em>250</em></button></div><p class="hint">Les dépôts soignent, stoppent l’infection et ravitaillent à proximité.</p></section>
+<div class="blast-report"><span>ÉLIMINATIONS EXPLOSIVES <b id="blast-kills">0</b></span><span>MEILLEUR IMPACT <b id="best-blast">0</b></span></div>
+<section id="sandbox-tools" hidden><div class="section-title">LABORATOIRE SANDBOX</div><label>Quantité <select id="amount"><option>100</option><option selected>500</option><option>1000</option><option>5000</option></select></label><button id="siege" class="siege-btn">Nouveau test de siège · 3 500 zombies</button><p class="hint">Le test de siège remplace la simulation en cours.</p><div class="buildgrid"><button data-spawn="zombie">+ Horde</button><button data-spawn="soldier">+ Soldats ×10</button><button data-spawn="civilian">+ Civils ×50</button><button id="clear-z">Effacer zombies</button></div><p class="hint">Apparition à l’endroit du clic · ressources illimitées · plafond de 20 000 zombies.</p></section>
+<div class="section-title">TRANSMISSIONS</div><div id="events" role="log"></div></aside>
+<button id="panel-btn" title="Afficher ou masquer les commandes">☷ Forces</button>
+<div id="tool-banner" hidden></div><div id="toast" role="status"></div>
+<div class="mapbox"><div class="section-title">CARTE DU SECTEUR <button id="home" title="Centrer sur le QG">⌖ QG</button></div><canvas id="minimap" width="200" height="200" aria-label="Minicarte, cliquez pour déplacer la caméra"></canvas><div class="mapmeta"><span>8,2 × 8,2 KM</span><span id="perf">INITIALISATION</span></div></div>
+<footer><span><i class="dot green"></i> INFECTÉS <i class="dot blue"></i> ARMÉE <i class="dot white"></i> CIVILS</span><span id="controls">Glisser : sélectionner · Clic droit : ordre · ZQSD / WASD : caméra · Molette : zoom · Espace : pause</span><button id="help-btn">? Aide</button></footer>
+<dialog id="menu"><div class="section-title">ZOMBIE GAME / V0.2.1</div><h2>Commandement</h2><p>Commandez vos forces, fortifiez le périmètre et brisez les hordes à l’artillerie. Le banc d’essai lance immédiatement un siège de 3 500 zombies.</p><label>Scénario <select id="scenario"><option value="defense">Défense — tenir 5 minutes</option><option value="sandbox">Sandbox — simulation libre</option><option value="siege">Banc d’essai — artillerie</option></select></label><label>Population initiale <select id="population"><option value="1000">1 000 zombies</option><option value="2500" selected>2 500 zombies</option><option value="5000">5 000 zombies</option><option value="10000">10 000 zombies</option><option value="0">Aucun zombie</option></select></label><fieldset class="visual-options"><legend>EFFETS VISUELS</legend><label><input id="blood-setting" type="checkbox" checked> Sang et traces au sol</label><label><input id="shake-setting" type="checkbox" checked> Secousses des explosions</label><label><input id="reduced-setting" type="checkbox"> Effets réduits</label></fieldset><div class="row"><button id="new" class="primary">Nouvelle simulation</button><button id="resume">Reprendre</button></div><div class="row"><button id="save">Sauvegarder JSON</button><button id="load">Charger JSON</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><p class="hint">Un nouveau scénario remplace la simulation en cours. Exportez-la pour la conserver.</p></dialog>
+<dialog id="help"><h2>Ordres & survie</h2><p>Votre QG gagne 8 crédits par seconde. Chaque civil évacué rapporte 20 crédits. Des hordes arrivent toutes les 40 secondes après la première alerte.</p><ul><li><b>Sélection :</b> clic, rectangle, Maj pour ajouter ; Ctrl+A sélectionne toute l’armée.</li><li><b>Ordres :</b> clic droit pour déplacer ; T puis clic pour avancer en attaquant ; H pour tenir.</li><li><b>Caméra :</b> WASD, ZQSD ou flèches ; glisser avec le bouton central ; molette pour zoomer ; F pour le QG.</li><li><b>Construction :</b> bouton puis clic pour poser, Maj pour continuer ; Échap annule. Construisez près d’une base et laissez des passages.</li><li><b>Combat :</b> tirs automatiques, chargeurs et réserves limités. Les chars infligent des dégâts de zone. Les bâtiments arrêtent les balles.</li><li><b>Artillerie :</b> le canon HE tire à vue ; mortiers et artillerie mobile tirent en cloche par-dessus les murs. Sélectionnez l’artillerie, B puis clic pour un barrage répété (180–1 450 unités). H ou un ordre de déplacement annule ce barrage. Les explosions repoussent les survivants et les bâtiments protègent des éclats ; aucun tir ami.</li><li><b>Infection :</b> un humain mordu se transforme après 18 secondes. Rejoignez un dépôt ou le QG pour le soigner et refaire le plein.</li><li><b>Mobile :</b> sélectionnez une unité ou « Tout sélectionner », puis « Déplacer » et touchez la carte. Glissez à deux doigts pour la caméra et pincez pour zoomer.</li></ul><button id="help-close" class="primary">Compris</button></dialog>
+<dialog id="result"><div class="section-title">RAPPORT DE MISSION</div><h2 id="result-title"></h2><p id="result-text"></p><button id="result-menu" class="primary">Choisir un scénario</button></dialog>
+<script>
+// Runs before the game so import, syntax and runtime failures cannot leave
+// a silent empty map. This file is embedded in every distributed HTML entry.
+(() => {
+  const panel = document.getElementById('startup');
+  const title = document.getElementById('startup-title');
+  const details = document.getElementById('startup-details');
+  let state = 'loading';
+  let timer;
+  function fail(message) {
+    if (state === 'error') return;
+    const wasRunning = state === 'ready';
+    state = 'error';
+    clearTimeout(timer);
+    document.documentElement.dataset.gameState = 'error';
+    document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+    panel.hidden = false;
+    panel.classList.add('error');
+    title.textContent = wasRunning ? 'La simulation a rencontré une erreur.' : 'Le moteur du jeu n’a pas démarré.';
+    details.textContent = String(message || 'Erreur inconnue.').slice(0, 2000);
+  }
+  window.ZombieBoot = {
+    ready() {
+      if (state === 'error') return;
+      state = 'ready';
+      clearTimeout(timer);
+      document.documentElement.dataset.gameState = 'ready';
+      panel.hidden = true;
+    },
+    fail
+  };
+  document.getElementById('startup-reload').onclick = () => location.reload();
+  addEventListener('error', event => {
+    if (event.target?.tagName === 'SCRIPT' && event.target.src) {
+      fail('Impossible de charger le moteur JavaScript. Pour jouer par double-clic, ouvrez index.html ou Jouer.html ; dev.html nécessite un serveur local.');
+    } else if (event.message) {
+      fail(event.message);
+    }
+  }, true);
+  addEventListener('unhandledrejection', event => fail(event.reason?.message || event.reason));
+  timer = setTimeout(() => {
+    if (state === 'loading') fail('Le chargement n’a pas abouti. Décompressez le ZIP dans un dossier, puis ouvrez index.html dans Chrome, Edge ou Firefox.');
+  }, 8000);
+})();
+
+</script>
+<script type="module" src="src/main.js"></script></body></html>

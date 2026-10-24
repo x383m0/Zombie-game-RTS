@@ -1,10 +1,10 @@
-# Zombie Game · v0.2 — Artillerie & hordes
+# Zombie Game · v0.2.1 — Correctif de démarrage
 
 RTS militaire et simulation d’apocalypse zombie en JavaScript et HTML5 Canvas. Visuel minimaliste, bâtiments vus uniquement de l’extérieur. Sans bibliothèque, service externe, compte, téléchargement d’assets ou compilation obligatoire.
 
 ## Jouer immédiatement
 
-Décompressez le dossier et ouvrez **Jouer.html** par double-clic dans Chrome, Edge ou Firefox. Cette page autonome contient le même jeu que les modules source et fonctionne hors ligne. Choisissez un scénario puis **Nouvelle simulation**.
+Décompressez le dossier et ouvrez **index.html** ou **Jouer.html** par double-clic dans Chrome, Edge ou Firefox. Ces deux pages autonomes identiques contiennent le même jeu que les modules source et fonctionnent hors ligne, sans serveur local. Le correctif v0.2.1 rend index.html autonome lui aussi pour éviter le blocage des modules lors d’une ouverture en file://. Choisissez un scénario puis **Nouvelle simulation**.
 
 - **Défense :** protéger le QG pendant 5 minutes. Départ : 24 soldats, un char, un blindé, une artillerie mobile, un mortier, un canon HE, 80 civils, 2 500 zombies et 900 crédits. Population initiale réglable. Première horde à 35 s, suivantes toutes les 40 s. Le QG détruit termine la partie.
 - **Banc d’essai — artillerie :** scénario sandbox prêt à jouer, avec 3 500 zombies concentrés au nord de la base et deux pièces d’artillerie mobile. Il suffit de le choisir dans le menu ; les armes tirent automatiquement. Le bouton Nouveau test de siège recommence ce scénario en remplaçant la simulation actuelle.
@@ -78,13 +78,13 @@ Menu ☰ → **Sauvegarder JSON** / **Charger JSON**. Export explicite, aucun cl
 
 ## Développement
 
-Le code de référence reste modulaire dans `src/`. Pour le servir en local depuis ce dossier :
+Le code de référence reste modulaire dans `src/`. `src/page.html` est le modèle HTML, `src/boot.js` gère les erreurs de démarrage, et `dev.html` charge les modules pour le développement. Pour servir la version de développement en local depuis ce dossier :
 
 ```sh
 python -m http.server 8000
 ```
 
-Sous Windows, `py -m http.server 8000` fonctionne aussi si le lanceur Python est installé. Ouvrez ensuite `http://localhost:8000`.
+Sous Windows, `py -m http.server 8000` fonctionne aussi si le lanceur Python est installé. Ouvrez ensuite `http://localhost:8000/dev.html`. Utilisez index.html ou Jouer.html pour jouer directement sans serveur.
 
 Node.js 20+ pour les tests et outils facultatifs ; **aucun npm install nécessaire** :
 
@@ -94,10 +94,11 @@ npm run benchmark
 npm run build
 ```
 
-`build` régénère `Jouer.html` à partir des modules et produit `dist/`. Après modification des sources, relancez cette commande avant de partager la page autonome. `index.html` utilise directement les modules et n’a pas besoin d’être reconstruit.
+`build` régénère `index.html`, `Jouer.html` et `dev.html` à partir des modules et du modèle `src/page.html`, puis produit `dist/`. Après modification des sources, relancez cette commande avant de partager la page autonome. `dev.html` charge directement les modules ; les pages autonomes doivent être régénérées après une modification du code.
 
 | Module | Responsabilité |
 | --- | --- |
+| `src/page.html` / `src/boot.js` | Modèle HTML et diagnostic visible des erreurs de démarrage |
 | `src/core.js` | Constantes, générateur aléatoire, géométrie, grille spatiale |
 | `src/navigation.js` | Collisions, visibilité, A* et champ de navigation partagé |
 | `src/simulation.js` | Monde, IA, combat, infection, ressources, construction, sauvegardes |
@@ -107,17 +108,18 @@ npm run build
 | `src/input.js` | Sélection, ordres RTS, clavier, souris et tactile |
 | `src/main.js` | Boucle à pas fixe 30 Hz, interface et fichiers |
 | `tests/engine.test.js` | Tests fonctionnels du moteur |
+| `tests/startup.test.js` | Exécution des scripts HTML distribués hors ligne et progression de l’horloge |
 | `tests/artillery.test.js` | Artillerie, dégâts et protection, recul, compatibilité des sauvegardes |
 | `tests/benchmark.js` | Mesures reproductibles, populations dispersées et concentrées |
 | `scripts/portable.js` | Assemblage de la page autonome sans dépendance |
 
 ## Import et GitHub Pages
 
-Importez le **contenu** du dossier `Zombie_Game` à la racine de votre dépôt. Pour GitHub Pages : **Settings → Pages → Deploy from a branch → main → / (root)**. `index.html`, `style.css` et `src/` suffisent pour jouer ; conservez aussi tests et outils pour le développement. Le workflow inclus exécute uniquement les tests et la construction, sans publication automatique.
+Importez le **contenu** du dossier `Zombie_Game` à la racine de votre dépôt. Pour GitHub Pages : **Settings → Pages → Deploy from a branch → main → / (root)**. `index.html` seul suffit pour jouer ; conservez aussi tests et outils pour le développement. Le workflow inclus exécute uniquement les tests et la construction, sans publication automatique.
 
 ## Validation et performances
 
-27 tests automatisés couvrent la navigation, les commandes, les tirs, les obstacles, les munitions, les dégâts de zone, l’infection, les défenses destructibles, l’économie, les vagues, les fins de partie, la sauvegarde et les limites de requête spatiale. Vérification navigateur : banc d’essai de siège, impacts, sang/cratères, sélection des artilleries et ordre de barrage manuel. Les tests moteur vérifient aussi le tir indirect par-dessus un bâtiment, la protection contre le souffle, le recul sans traverser les obstacles, l’absence de dégâts alliés et la reprise de sauvegardes avec des obus en vol.
+31 tests automatisés couvrent la navigation, les commandes, les tirs, les obstacles, les munitions, les dégâts de zone, l’infection, les défenses destructibles, l’économie, les vagues, les fins de partie, la sauvegarde et les limites de requête spatiale. Vérification navigateur : banc d’essai de siège, impacts, sang/cratères, sélection des artilleries et ordre de barrage manuel. Le démarrage des scripts HTML distribués est aussi testé sans réseau, avec progression de la simulation et diagnostics d’erreur. Les tests moteur vérifient aussi le tir indirect par-dessus un bâtiment, la protection contre le souffle, le recul sans traverser les obstacles, l’absence de dégâts alliés et la reprise de sauvegardes avec des obus en vol.
 
 `BENCHMARK.json` contient les mesures effectuées dans l’environnement de développement. Les effectifs indiquent la population initiale et la population restante après les combats. Ces mesures concernent le moteur Node.js, **pas le nombre d’images par seconde dans votre navigateur**. Le rendu, le matériel, le zoom et la concentration des zombies influencent la fluidité. La limite de 20 000 est une protection de population, pas une promesse de fluidité sur tous les appareils.
 
